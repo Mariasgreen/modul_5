@@ -7,11 +7,11 @@ export class ClassComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      result: 'Write a number',
+      result: 'Write a number 0 - 10',
       userNumber: '',
       randomNumber: this.generateRandomNumber(),
       count: 0,
-      playAgain: false,
+      isGameOver: false,
     };
   }
 
@@ -19,51 +19,52 @@ export class ClassComponent extends React.Component {
     Math.floor(Math.random() * (this.props.max - this.props.min)) +
     this.props.min;
 
-
   resetGame = () => {
     this.setState({
       result: 'Write a number',
       userNumber: '',
       randomNumber: this.generateRandomNumber(),
       count: 0,
-      playAgain: false,
+      isGameOver: false,
     });
   };
 
   handleSubmit = (e) => {
     e.preventDefault();
-    this.setState(state => ({
+
+    if (this.state.isGameOver) {
+      return;
+    }
+
+    const userNumber = parseInt(this.state.userNumber);
+
+    if (isNaN(userNumber) || userNumber < this.props.min ||
+    userNumber > this.props.max) {
+      return;
+    }
+
+    this.setState((state) => ({
       count: state.count + 1,
     }));
 
-    this.setState((state) => {
-      if (!state.userNumber) {
-        return {
-          result: `Write a number`,
-        };
-      }
-
-      if (state.userNumber > state.randomNumber) {
-        return {
-          result: `${state.userNumber} is greater than the guessed number`,
-          userNumber: '',
-        };
-      }
-      if (state.userNumber < state.randomNumber) {
-        return {
-          result: `${state.userNumber} is smaller than the guessed number`,
-          userNumber: '',
-        };
-      }
-
-      return {
-        result: `Congratulations! 
-        You guessed ${state.userNumber} in ${state.count} attempts`,
+    if (userNumber > this.state.randomNumber) {
+      this.setState({
+        result: `${userNumber} is greater than the guessed number`,
         userNumber: '',
-      };
-    });
+      });
+    } else if (userNumber < this.state.randomNumber) {
+      this.setState({
+        result: `${userNumber} is smaller than the guessed number`,
+        userNumber: '',
+      });
+    } else {
+      this.setState({
+        result: `Congratulations! You guessed ${userNumber} in
+        ${this.state.count + 1} attempts`,
+        isGameOver: true,
+      });
+    }
   };
-
 
   handleChange = (e) => {
     this.setState({
@@ -85,12 +86,15 @@ export class ClassComponent extends React.Component {
             id='user_number'
             onChange={this.handleChange}
             value={this.state.userNumber}
+            disabled={this.state.isGameOver}
           />
-          <button className={style.btn}>Угадать</button>
+          <button className={style.btn} disabled={this.state.isGameOver}>
+            Угадать
+          </button>
         </form>
-        {this.state.result.includes('Congratulations') && (
+        {this.state.isGameOver && (
           <button className={style.btn} onClick={this.resetGame}>
-            Play again
+           Сыграть ещё
           </button>
         )}
       </div>
